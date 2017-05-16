@@ -1,8 +1,12 @@
 /* See NOTICE file for copyright and licensing information */
+/* Apache License 2.0 - See Notice*/
+/* Copyright 2017, Shaun Ramsey, Chris Saul - See Notice */
 
+
+//a map of the digits
 static const byte digitMap[] = {
-  B00111111, // 0   "0"          AAA           //a =7, b = 6, c = 4, d = 2, e = 1, f = 9, g = 10, dp =5
-  B00000110, // 1   "1"         F   B
+  B00111111, // 0   "0"          AAA        
+  B00000110, // 1   "1"         F   B	    
   B01011011, // 2   "2"         F   B
   B01001111, // 3   "3"          GGG
   B01100110, // 4   "4"         E   C
@@ -13,6 +17,8 @@ static const byte digitMap[] = {
   B01101111, // 9   "9"
 };
 
+
+//a map of characters
 static const byte charMap[] = {
  B01110111, //"a"
  B01111100, //"b"
@@ -41,28 +47,16 @@ static const byte charMap[] = {
  B01101110, // 89  'y'
  B01011011, // 90  'Z'  Same as '2'
 };
-                            //a, b, c, d, e, f, g,  dp
-const int alphaToIndex[] =  {3,  2, 8, 7, 6, 4, 5,  9};//{ 7,6,4,2,1,9,10,5};
 
-int turnLow = 0;
+//map your a-g,dp to pins on the arduino...probably could do this in
+//a more orderly fashion but this array allows us to mix things up
+                            //a, b, c, d, e, f, g, dp
+const int alphaToIndex[] =  {3,  2, 8, 7, 6, 4, 5, 9};//{ 7,6,4,2,1,9,10,5};
 
-// the setup function runs once when you press reset or power the board
-void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-  for(int i = 2; i <= 10; ++i) {
-    pinMode(i, OUTPUT);
-  }
-  randomSeed(analogRead(0));
-  int ran = random(1,7);
-  for(int i = 0; i < ran + 12; i++){
-    int k = i % 6 + 1;
-    displayDigit(k, LOW);
-    delay(15*i + 100);
-  }
-  displayDigit(ran, HIGH);
-}
 
-//lower case only
+
+
+//mixed case and some are missing
 void displayCharacter(char c) {
    c = tolower(c);
    int index = c - 'a';
@@ -77,19 +71,23 @@ void displayCharacter(char c) {
    }
 }
 
+
+//display this particular digit
 void displayDigit(int index, int period) {
    byte d = digitMap[index];
    for(int i = 0; i < 7; i++) {
     int j = i;
       if(( (d >> j) & 0x1) > 0) { //then display this one
-        pinMode(alphaToIndex[i], HIGH);
+        pinMode(alphaToIndex[i], HIGH); //turn this one on
       } else {
-        pinMode(alphaToIndex[i], LOW);
+        pinMode(alphaToIndex[i], LOW); //turn this one off
       }
    }
    pinMode(alphaToIndex[7], period);
 }
 
+
+//not used but useful to turn all the segments off
 void turnLowPause() {
   for(int i = 2; i <= 10; i++) {
     pinMode(i, LOW);
@@ -97,7 +95,27 @@ void turnLowPause() {
   delay(200);
 }
 
-// the loop function runs over and over again forever
+
+
+// first time - only when botting up does this run
+void setup() {
+  // init all these pins as output
+  for(int i = 2; i <= 10; ++i) {
+    pinMode(i, OUTPUT);
+  }
+  randomSeed(analogRead(0)); //neat way to get a seed
+  int ran = random(1,7);
+  for(int i = 0; i < ran + 12; i++){
+    int k = i % 6 + 1;
+    displayDigit(k, LOW);
+    delay(15*i + 100);
+  }
+  displayDigit(ran, HIGH);
+}
+
+
+
+// loop forever
 void loop() {
 
 }
