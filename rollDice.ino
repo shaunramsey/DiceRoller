@@ -101,11 +101,12 @@ void turnLowPause() {
 
 //test all the segments
 void segmentTest() {
+  turnLowPause();
   for(int i = 0; i < 8; i++) {
     int previndex = i - 1;
     if(previndex < 0) previndex = 0;
-    pinMode(previndex, LOW);
-    pinMode(i, HIGH);
+    pinMode(alphaToIndex[previndex], LOW);
+    pinMode(alphaToIndex[i], HIGH);
     delay(200);
   }
 }
