@@ -2,6 +2,9 @@
 /* Apache License 2.0 - See Notice*/
 /* Copyright 2017, Shaun Ramsey, Chris Saul - See Notice */
 
+/* v0.3 - added a function that tests each segment in order A-G,dp */
+/* v0.2 - added comments and rearranged some code */
+
 
 //a map of the digits
 static const byte digitMap[] = {
@@ -96,6 +99,17 @@ void turnLowPause() {
 }
 
 
+//test all the segments
+void segmentTest() {
+  for(int i = 0; i < 8; i++) {
+    int previndex = i - 1;
+    if(previndex < 0) previndex = 0;
+    pinMode(previndex, LOW);
+    pinMode(i, HIGH);
+    delay(200);
+  }
+}
+
 
 // first time - only when botting up does this run
 void setup() {
@@ -103,6 +117,9 @@ void setup() {
   for(int i = 2; i <= 10; ++i) {
     pinMode(i, OUTPUT);
   }
+
+   //do a segmentTest!
+   segmentTest();
   randomSeed(analogRead(0)); //neat way to get a seed
   int ran = random(1,7);
   for(int i = 0; i < ran + 12; i++){
