@@ -107,7 +107,7 @@ void segmentTest() {
     if(previndex < 0) previndex = 0;
     pinMode(alphaToIndex[previndex], LOW);
     pinMode(alphaToIndex[i], HIGH);
-    delay(200);
+    delay(300);
   }
 }
 
