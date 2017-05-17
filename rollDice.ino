@@ -2,6 +2,7 @@
 /* Apache License 2.0 - See Notice*/
 /* Copyright 2017, Shaun Ramsey, Chris Saul - See Notice */
 
+/* v0.4 - changed pinMode to digitalWrite to be appropriate, used ! to show they're inverted, added variable roll timers, sped them up */
 /* v0.3 - added a function that tests each segment in order A-G,dp */
 /* v0.2 - added comments and rearranged some code */
 
@@ -67,9 +68,9 @@ void displayCharacter(char c) {
    for(int i = 0; i < 8; i++) {
     int j = i;
       if(( (d >> j) & 0x1) > 0) { //then display this one
-        pinMode(alphaToIndex[i], HIGH);
+        digitalWrite(alphaToIndex[i], !HIGH);
       } else {
-        pinMode(alphaToIndex[i], LOW);
+        digitalWrite(alphaToIndex[i], !LOW);
       }
    }
 }
@@ -81,33 +82,33 @@ void displayDigit(int index, int period) {
    for(int i = 0; i < 7; i++) {
     int j = i;
       if(( (d >> j) & 0x1) > 0) { //then display this one
-        pinMode(alphaToIndex[i], HIGH); //turn this one on
+        digitalWrite(alphaToIndex[i], !HIGH); //turn this one on
       } else {
-        pinMode(alphaToIndex[i], LOW); //turn this one off
+        digitalWrite(alphaToIndex[i], !LOW); //turn this one off
       }
    }
-   pinMode(alphaToIndex[7], period);
+   digitalWrite(alphaToIndex[7], !period);
 }
 
 
 //not used but useful to turn all the segments off
-void turnLowPause() {
+void turnOffPause(int pause_length) {
   for(int i = 2; i <= 10; i++) {
-    pinMode(i, LOW);
+    digitalWrite(i, !LOW);
   }
-  delay(200);
+  delay(pause_length);
 }
 
 
 //test all the segments
 void segmentTest() {
-  turnLowPause();
+  turnOffPause(200);
   for(int i = 0; i < 8; i++) {
     int previndex = i - 1;
     if(previndex < 0) previndex = 0;
-    pinMode(alphaToIndex[previndex], LOW);
-    pinMode(alphaToIndex[i], HIGH);
-    delay(300);
+    digitalWrite(alphaToIndex[previndex], !LOW);
+    digitalWrite(alphaToIndex[i], !HIGH);
+    delay(200);
   }
 }
 
@@ -119,14 +120,15 @@ void setup() {
     pinMode(i, OUTPUT);
   }
 
-   //do a segmentTest!
-   segmentTest();
+  //do a segmentTest!
+  segmentTest();
   randomSeed(analogRead(0)); //neat way to get a seed
   int ran = random(1,7);
-  for(int i = 0; i < ran + 12; i++){
+  int dur = random(1,5);
+  for(int i = 0; i < ran + 6*dur; i++){
     int k = i % 6 + 1;
     displayDigit(k, LOW);
-    delay(15*i + 100);
+    delay(15*i + 20);
   }
   displayDigit(ran, HIGH);
 }
