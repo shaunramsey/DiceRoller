@@ -58,79 +58,72 @@ static const byte charMap[] = {
 const int alphaToIndex[] =  {3,  2, 8, 7, 6, 4, 5, 9};//{ 7,6,4,2,1,9,10,5};
 
 
-
+const int latchPin = 12;
+const int clockPin = 11;
+const int dataPin = 13;
 
 //mixed case and some are missing
 void displayCharacter(char c) {
    c = tolower(c);
    int index = c - 'a';
-   byte d = charMap[index];
-   for(int i = 0; i < 8; i++) {
-    int j = i;
-      if(( (d >> j) & 0x1) > 0) { //then display this one
-        digitalWrite(alphaToIndex[i], !HIGH);
-      } else {
-        digitalWrite(alphaToIndex[i], !LOW);
-      }
-   }
+   byte d = charMap[index] ^ -1;
+   digitalWrite(latchPin, LOW);
+   shiftOut(dataPin, clockPin, LSBFIRST, d);
+   digitalWrite(latchPin, HIGH);
 }
 
 
 //display this particular digit
 void displayDigit(int index, int period) {
-   byte d = digitMap[index];
-   for(int i = 0; i < 7; i++) {
-    int j = i;
-      if(( (d >> j) & 0x1) > 0) { //then display this one
-        digitalWrite(alphaToIndex[i], !HIGH); //turn this one on
-      } else {
-        digitalWrite(alphaToIndex[i], !LOW); //turn this one off
-      }
+   byte d = digitMap[index] ^ -1;
+   if (period == HIGH){
+    d = d & 127; 
    }
-   digitalWrite(alphaToIndex[7], !period);
+   digitalWrite(latchPin, LOW);
+   shiftOut(dataPin, clockPin, LSBFIRST, d);
+   digitalWrite(latchPin, HIGH);
 }
 
 
 //not used but useful to turn all the segments off
 void turnOffPause(int pause_length) {
-  for(int i = 2; i <= 10; i++) {
-    digitalWrite(i, !LOW);
-  }
+  byte d = B00000000;
+  digitalWrite(latchPin, LOW);
   delay(pause_length);
+  digitalWrite(latchPin, HIGH);
 }
 
 
 //test all the segments
 void segmentTest() {
-  turnOffPause(200);
   for(int i = 0; i < 8; i++) {
-    int previndex = i - 1;
-    if(previndex < 0) previndex = 0;
-    digitalWrite(alphaToIndex[previndex], !LOW);
-    digitalWrite(alphaToIndex[i], !HIGH);
+    byte d = B11111111;
+    bitWrite(d, i, 0);
+    digitalWrite(latchPin, LOW);
+    shiftOut(dataPin, clockPin, LSBFIRST, d);
+    digitalWrite(latchPin, HIGH);
     delay(200);
   }
 }
 
-
 // first time - only when botting up does this run
 void setup() {
   // init all these pins as output
-  for(int i = 2; i <= 10; ++i) {
-    pinMode(i, OUTPUT);
-  }
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
 
   //do a segmentTest!
   segmentTest();
   randomSeed(analogRead(0)); //neat way to get a seed
-  int ran = random(1,7);
-  int dur = random(1,5);
+  int ran = random(1,7);  
+  int dur = random(1,5);  //makes dice roll feel good
   for(int i = 0; i < ran + 6*dur; i++){
     int k = i % 6 + 1;
     displayDigit(k, LOW);
     delay(15*i + 20);
   }
-  displayDigit(ran, HIGH);
+  displayDigit(ran, HIGH);  //shows the rolled value
 }
 
 
