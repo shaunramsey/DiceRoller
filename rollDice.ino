@@ -21,6 +21,16 @@ static const byte digitMap[] = {
   B01101111, // 9   "9"
 };
 
+static const byte digitMap2[] = {
+  B01110111, // 0   "0"          AAA        
+  B01000001, // 1   "1"         F   B      
+  B00111011, // 2   "2"         F   B
+  B01101011, // 3   "3"          GGG
+  B01001101, // 4   "4"         E   C
+  B01101110, // 5   "5"         E   C
+  B01111110, // 6   "6"          DDD
+};
+
 
 //a map of characters
 static const byte charMap[] = {
@@ -84,6 +94,15 @@ void displayDigit(int index, int period) {
    digitalWrite(latchPin, HIGH);
 }
 
+void displayDigit2(int index, int period) {
+   byte d = permute(digitMap[index]) ^ -1;
+   if (period == HIGH){
+    d = d & 127; 
+   }
+   digitalWrite(latchPin, LOW);
+   shiftOut(dataPin, clockPin, LSBFIRST, d);
+   digitalWrite(latchPin, HIGH);
+}
 
 //not used but useful to turn all the segments off
 void turnOffPause(int pause_length) {
@@ -93,6 +112,26 @@ void turnOffPause(int pause_length) {
   digitalWrite(latchPin, HIGH);
 }
 
+const int segmentOrder[] = {1, 0, 6, 5, 4, 2, 3, 7};
+
+byte permute(byte d) {
+  byte b = 0;
+  for (int i=0; i<8; i++){
+    bitWrite(b, segmentOrder[i], bitRead(d, i));
+  }
+  return b;
+}
+
+void segmentTest2() {
+  for(int i = 0; i < 8; i++) {
+    byte d = B11111111;
+    bitWrite(d, segmentOrder[i], 0);
+    digitalWrite(latchPin, LOW);
+    shiftOut(dataPin, clockPin, LSBFIRST, d);
+    digitalWrite(latchPin, HIGH);
+    delay(200);
+  }
+}
 
 //test all the segments
 void segmentTest() {
@@ -114,19 +153,17 @@ void setup() {
   pinMode(dataPin, OUTPUT);
 
   //do a segmentTest!
-  segmentTest();
+  segmentTest2();
   randomSeed(analogRead(0)); //neat way to get a seed
   int ran = random(1,7);  
   int dur = random(1,5);  //makes dice roll feel good
   for(int i = 0; i < ran + 6*dur; i++){
     int k = i % 6 + 1;
-    displayDigit(k, LOW);
+    displayDigit2(k, LOW);
     delay(15*i + 20);
   }
-  displayDigit(ran, HIGH);  //shows the rolled value
+  displayDigit2(ran, HIGH);  //shows the rolled value
 }
-
-
 
 // loop forever
 void loop() {
