@@ -21,17 +21,6 @@ static const byte digitMap[] = {
   B01101111, // 9   "9"
 };
 
-static const byte digitMap2[] = {
-  B01110111, // 0   "0"          AAA        
-  B01000001, // 1   "1"         F   B      
-  B00111011, // 2   "2"         F   B
-  B01101011, // 3   "3"          GGG
-  B01001101, // 4   "4"         E   C
-  B01101110, // 5   "5"         E   C
-  B01111110, // 6   "6"          DDD
-};
-
-
 //a map of characters
 static const byte charMap[] = {
  B01110111, //"a"
@@ -67,6 +56,7 @@ static const byte charMap[] = {
                             //a, b, c, d, e, f, g, dp
 const int alphaToIndex[] =  {3,  2, 8, 7, 6, 4, 5, 9};//{ 7,6,4,2,1,9,10,5};
 
+const int segmentOrder[] = {1, 0, 6, 5, 4, 2, 3, 7};
 
 const int latchPin = 12;
 const int clockPin = 11;
@@ -106,13 +96,12 @@ void displayDigit2(int index, int period) {
 
 //not used but useful to turn all the segments off
 void turnOffPause(int pause_length) {
-  byte d = B00000000;
+  byte d = B11111111;
   digitalWrite(latchPin, LOW);
-  delay(pause_length);
+  shiftOut(dataPin, clockPin, LSBFIRST, d);
   digitalWrite(latchPin, HIGH);
+  delay(pause_length);
 }
-
-const int segmentOrder[] = {1, 0, 6, 5, 4, 2, 3, 7};
 
 byte permute(byte d) {
   byte b = 0;
