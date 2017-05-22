@@ -1,7 +1,7 @@
 /* See NOTICE file for copyright and licensing information */
 /* Apache License 2.0 - See Notice*/
-/* Copyright 2017, Shaun Ramsey, Chris Saul 
-Copyright 2017 Shaun Ramsey, Chris Saul
+
+/* Copyright 2017 Shaun Ramsey, Chris Saul
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ limitations under the License.*/
 /* v0.3 - added a function that tests each segment in order A-G,dp */
 /* v0.2 - added comments and rearranged some code */
 
+const int clockPin = 11;
+const int latchPin = 12;
+const int dataPin = 13;
 
 //a map of the digits
 static const byte digitMap[] = {
@@ -33,7 +36,6 @@ static const byte digitMap[] = {
   B01111111, // 8   "8"
   B01101111, // 9   "9"
 };
-
 
 //a map of characters
 static const byte charMap[] = {
@@ -65,90 +67,88 @@ static const byte charMap[] = {
  B01011011, // 90  'Z'  Same as '2'
 };
 
-//map your a-g,dp to pins on the arduino...probably could do this in
-//a more orderly fashion but this array allows us to mix things up
-                            //a, b, c, d, e, f, g, dp
-const int alphaToIndex[] =  {3,  2, 8, 7, 6, 4, 5, 9};//{ 7,6,4,2,1,9,10,5};
+//This containts the segment order for GIS day 
+const int segmentOrder[] = {3, 4, 0, 2, 1, 6, 5, 7};
 
-
-
+//will adjust the digit bytes to match the arduino setup 
+byte permute(byte d) {
+  byte b = 0;
+  for (int i=0; i<8; i++){
+    //Does exactly what the Bitwrite line does but faster using bitshifts 
+    b = b  | ( ( (d & ( 1 << i ) ) >> i ) << segmentOrder[i] );
+    //bitWrite(b, segmentOrder[i], bitRead(d, i));
+  }
+  return b;
+}
 
 //mixed case and some are missing
 void displayCharacter(char c) {
    c = tolower(c);
    int index = c - 'a';
-   byte d = charMap[index];
-   for(int i = 0; i < 8; i++) {
-    int j = i;
-      if(( (d >> j) & 0x1) > 0) { //then display this one
-        digitalWrite(alphaToIndex[i], !HIGH);
-      } else {
-        digitalWrite(alphaToIndex[i], !LOW);
-      }
-   }
+   //uses XOR and the -1 value to invert the byte. 
+   //XOR making the value true when they differ
+   byte d = permute(charMap[index]) ^ -1;
+   digitalWrite(latchPin, LOW);
+   shiftOut(dataPin, clockPin, LSBFIRST, d);
+   digitalWrite(latchPin, HIGH);
 }
 
-
-//display this particular digit
 void displayDigit(int index, int period) {
-   byte d = digitMap[index];
-   for(int i = 0; i < 7; i++) {
-    int j = i;
-      if(( (d >> j) & 0x1) > 0) { //then display this one
-        digitalWrite(alphaToIndex[i], !HIGH); //turn this one on
-      } else {
-        digitalWrite(alphaToIndex[i], !LOW); //turn this one off
-      }
+   //uses XOR and the -1 value to invert the byte. 
+   //XOR making the value true when they differ
+   byte d = permute(digitMap[index]) ^ -1;
+   if (period == HIGH){
+    d = d & 127; 
    }
-   digitalWrite(alphaToIndex[7], !period);
+   digitalWrite(latchPin, LOW);
+   shiftOut(dataPin, clockPin, LSBFIRST, d);
+   digitalWrite(latchPin, HIGH);
 }
-
 
 //not used but useful to turn all the segments off
 void turnOffPause(int pause_length) {
-  for(int i = 2; i <= 10; i++) {
-    digitalWrite(i, !LOW);
-  }
+  byte d = B11111111;
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, d);
+  digitalWrite(latchPin, HIGH);
   delay(pause_length);
 }
 
-
-//test all the segments
+//Segment tests the arduino where segments dont match the digit bytes 
 void segmentTest() {
-  turnOffPause(200);
   for(int i = 0; i < 8; i++) {
-    int previndex = i - 1;
-    if(previndex < 0) previndex = 0;
-    digitalWrite(alphaToIndex[previndex], !LOW);
-    digitalWrite(alphaToIndex[i], !HIGH);
+    byte d = B11111111;
+    bitWrite(d, segmentOrder[i], 0);
+    digitalWrite(latchPin, LOW);
+    shiftOut(dataPin, clockPin, LSBFIRST, d);
+    digitalWrite(latchPin, HIGH);
     delay(200);
   }
 }
 
-
 // first time - only when botting up does this run
 void setup() {
   // init all these pins as output
-  for(int i = 2; i <= 10; ++i) {
-    pinMode(i, OUTPUT);
-  }
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
 
   //do a segmentTest!
   segmentTest();
   randomSeed(analogRead(0)); //neat way to get a seed
-  int ran = random(1,7);
-  int dur = random(1,5);
+
+  int ran = random(1,7);  
+  int dur = random(1,5);  //makes dice roll feel good
+
   for(int i = 0; i < ran + 6*dur; i++){
     int k = i % 6 + 1;
     displayDigit(k, LOW);
     delay(15*i + 20);
   }
-  displayDigit(ran, HIGH);
+  displayDigit(ran, HIGH);  //shows the rolled value
 }
-
-
 
 // loop forever
 void loop() {
-
+  //No loop for you
 }
