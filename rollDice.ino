@@ -56,16 +56,22 @@ static const byte charMap[] = {
                             //a, b, c, d, e, f, g, dp
 const int alphaToIndex[] =  {3,  2, 8, 7, 6, 4, 5, 9};//{ 7,6,4,2,1,9,10,5};
 
-const int segmentOrder[] = {1, 0, 6, 5, 4, 2, 3, 7};
+//commented out because this is for a different arduino fritzing
+//const int segmentOrder[] = {1, 0, 6, 5, 4, 2, 3, 7};
 
-const int latchPin = 12;
+//This containts the segment order for GIS day 
+const int segmentOrder[] = {3, 4, 0, 2, 1, 6, 5, 7};
+
 const int clockPin = 11;
+const int latchPin = 12;
 const int dataPin = 13;
 
 //mixed case and some are missing
 void displayCharacter(char c) {
    c = tolower(c);
    int index = c - 'a';
+   //uses XOR and the -1 value to invert the byte. 
+   //XOR making the value true when they differ
    byte d = charMap[index] ^ -1;
    digitalWrite(latchPin, LOW);
    shiftOut(dataPin, clockPin, LSBFIRST, d);
@@ -75,6 +81,8 @@ void displayCharacter(char c) {
 
 //display this particular digit
 void displayDigit(int index, int period) {
+   //uses XOR and the -1 value to invert the byte. 
+   //XOR making the value true when they differ
    byte d = digitMap[index] ^ -1;
    if (period == HIGH){
     d = d & 127; 
@@ -85,6 +93,8 @@ void displayDigit(int index, int period) {
 }
 
 void displayDigit2(int index, int period) {
+   //uses XOR and the -1 value to invert the byte. 
+   //XOR making the value true when they differ
    byte d = permute(digitMap[index]) ^ -1;
    if (period == HIGH){
     d = d & 127; 
@@ -103,14 +113,19 @@ void turnOffPause(int pause_length) {
   delay(pause_length);
 }
 
+
+//will adjust the digit bytes to match the arduino setup 
 byte permute(byte d) {
   byte b = 0;
   for (int i=0; i<8; i++){
-    bitWrite(b, segmentOrder[i], bitRead(d, i));
+    //Does exactly what the Bitwrite line does but faster using bitshifts 
+    b = b  | ( ( (d & ( 1 << i ) ) >> i ) << segmentOrder[i] );
+    //bitWrite(b, segmentOrder[i], bitRead(d, i));
   }
   return b;
 }
 
+//Segment tests the arduino where segments dont match the digit bytes 
 void segmentTest2() {
   for(int i = 0; i < 8; i++) {
     byte d = B11111111;
@@ -156,5 +171,4 @@ void setup() {
 
 // loop forever
 void loop() {
-
 }
