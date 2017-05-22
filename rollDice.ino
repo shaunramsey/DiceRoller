@@ -1,5 +1,6 @@
 /* See NOTICE file for copyright and licensing information */
 /* Apache License 2.0 - See Notice*/
+
 /* Copyright 2017 Shaun Ramsey, Chris Saul
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -135,8 +136,10 @@ void setup() {
   //do a segmentTest!
   segmentTest();
   randomSeed(analogRead(0)); //neat way to get a seed
+
   int ran = random(1,7);  
   int dur = random(1,5);  //makes dice roll feel good
+
   for(int i = 0; i < ran + 6*dur; i++){
     int k = i % 6 + 1;
     displayDigit(k, LOW);
